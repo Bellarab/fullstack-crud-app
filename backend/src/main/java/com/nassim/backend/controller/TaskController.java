@@ -1,7 +1,9 @@
 package com.nassim.backend.controller;
 
+import com.nassim.backend.DTO.TaskDTO;
 import com.nassim.backend.model.Task;
 import com.nassim.backend.service.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +22,11 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
-        Task createdTask = taskService.createTask(task);
+    public ResponseEntity<TaskDTO> createTask(@RequestBody @Valid TaskDTO taskDTO) {
+        TaskDTO createdTask = taskService.createTask(taskDTO);
         return ResponseEntity.ok(createdTask);
     }
+
 
     @GetMapping
     public ResponseEntity<List<Task>> getAllTasks() {
@@ -38,7 +41,7 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody @Valid Task task) {
         try {
             Task updatedTask = taskService.updateTask(id, task);
             return ResponseEntity.ok(updatedTask);

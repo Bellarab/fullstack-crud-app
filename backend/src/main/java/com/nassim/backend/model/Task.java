@@ -2,6 +2,8 @@ package com.nassim.backend.model;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "task")
@@ -11,10 +13,12 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Title is required")
     private String title;
 
     private String description;
 
+    @NotNull(message = "User is required")
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

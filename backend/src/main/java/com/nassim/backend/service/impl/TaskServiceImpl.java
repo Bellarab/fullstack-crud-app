@@ -1,8 +1,11 @@
 package com.nassim.backend.service.impl;
 
 import com.nassim.backend.model.Task;
+import com.nassim.backend.model.User;
 import com.nassim.backend.repository.TaskRepository;
 import com.nassim.backend.service.TaskService;
+import com.nassim.backend.service.UserService;
+import com.nassim.backend.DTO.TaskDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,16 +16,38 @@ import java.util.Optional;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final UserService userService;
 
     @Autowired
-    public TaskServiceImpl(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserService userService) {
         this.taskRepository = taskRepository;
+        this.userService = userService;
     }
 
-    @Override
-    public Task createTask(Task task) {
-        return taskRepository.save(task);
+    private TaskDTO convertToDTO(Task task) {
+        TaskDTO dto = new TaskDTO();
+        dto.setTitle(task.getTitle());
+        dto.setDescription(task.getDescription());
+        dto.setUserId(task.getUser().getId());
+        // add more fields if needed
+        return dto;
     }
+    @Override
+    public TaskDTO createTask(TaskDTO taskDTO) {
+        User user = userService.getUserById(taskDTO.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Task task = new Task();
+        task.setTitle(taskDTO.getTitle());
+        task.setDescription(taskDTO.getDescription());
+        task.setUser(user);
+
+        Task savedTask = taskRepository.save(task);
+
+        // Convert entity to DTO before returning
+        return convertToDTO(savedTask);
+    }
+
 
     @Override
     public List<Task> getAllTasks() {
