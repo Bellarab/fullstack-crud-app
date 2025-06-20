@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class TaskDTO {
+    private Long id;
     @NotBlank(message = "Title is required")
     private String title;
 
@@ -12,7 +13,14 @@ public class TaskDTO {
     @NotNull(message = "user required")
     private Long userId;
 
-    // Getter and Setter for title
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
     public String getTitle() {
         return title;
     }
@@ -21,7 +29,6 @@ public class TaskDTO {
         this.title = title;
     }
 
-    // Getter and Setter for description
     public String getDescription() {
         return description;
     }
@@ -30,7 +37,6 @@ public class TaskDTO {
         this.description = description;
     }
 
-    // Getter and Setter for userId
     public Long getUserId() {
         return userId;
     }

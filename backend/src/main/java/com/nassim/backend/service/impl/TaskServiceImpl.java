@@ -26,6 +26,7 @@ public class TaskServiceImpl implements TaskService {
 
     private TaskDTO convertToDTO(Task task) {
         TaskDTO dto = new TaskDTO();
+        dto.setId(task.getId());
         dto.setTitle(task.getTitle());
         dto.setDescription(task.getDescription());
         dto.setUserId(task.getUser().getId());
@@ -34,7 +35,7 @@ public class TaskServiceImpl implements TaskService {
     }
     private List<TaskDTO> convertToDTO(List<Task> tasks) {
         return tasks.stream()
-                .map(this::convertToDTO) // calls the single-task version above
+                .map(this::convertToDTO)
                 .toList();
     }
 
@@ -44,13 +45,14 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Task task = new Task();
+
         task.setTitle(taskDTO.getTitle());
         task.setDescription(taskDTO.getDescription());
         task.setUser(user);
 
         Task savedTask = taskRepository.save(task);
 
-        // Convert entity to DTO before returning
+
         return convertToDTO(savedTask);
     }
 
