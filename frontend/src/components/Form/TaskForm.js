@@ -37,7 +37,7 @@ const TaskForm = ({ mode }) => {
       } else {
         await axios.post("/api/tasks", task);
       }
-      navigate("/tasks"); // redirect to task list
+      navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong.");
     }

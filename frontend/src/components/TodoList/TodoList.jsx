@@ -82,7 +82,7 @@ export default function TodoList() {
                     <li
                       key={task.id}
                       className="list-group-item d-flex justify-content-between align-items-center"
-                      style={{ gap: "1rem" }} // optional spacing between text and buttons
+                      style={{ gap: "1rem" }}
                     >
                       <div className="flex-grow-1 text-truncate">
                         <h5 className="mb-1 text-truncate">{task.title}</h5>
