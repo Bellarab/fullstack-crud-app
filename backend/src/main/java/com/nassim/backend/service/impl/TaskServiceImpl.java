@@ -32,6 +32,12 @@ public class TaskServiceImpl implements TaskService {
         // add more fields if needed
         return dto;
     }
+    private List<TaskDTO> convertToDTO(List<Task> tasks) {
+        return tasks.stream()
+                .map(this::convertToDTO) // calls the single-task version above
+                .toList();
+    }
+
     @Override
     public TaskDTO createTask(TaskDTO taskDTO) {
         User user = userService.getUserById(taskDTO.getUserId())
@@ -50,25 +56,33 @@ public class TaskServiceImpl implements TaskService {
 
 
     @Override
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+    public List<TaskDTO> getAllTasks() {
+         return convertToDTO(taskRepository.findAll());
+
     }
 
     @Override
-    public Optional<Task> getTaskById(Long id) {
-        return taskRepository.findById(id);
+    public Optional<TaskDTO> getTaskById(Long id) {
+        return taskRepository.findById(id).map(this::convertToDTO);
     }
 
     @Override
-    public Task updateTask(Long id, Task updatedTask) {
-        return taskRepository.findById(id)
+    public TaskDTO updateTask(Long id, TaskDTO taskDTO) {
+        User user = userService.getUserById(taskDTO.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Task updated = taskRepository.findById(id)
                 .map(existingTask -> {
-                    existingTask.setTitle(updatedTask.getTitle());
-                    existingTask.setDescription(updatedTask.getDescription());
-                    existingTask.setUser(updatedTask.getUser());
+                    existingTask.setTitle(taskDTO.getTitle());
+                    existingTask.setDescription(taskDTO.getDescription());
+                    existingTask.setUser(user);
                     return taskRepository.save(existingTask);
-                }).orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+                })
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+
+        return convertToDTO(updated);
     }
+
 
     @Override
     public void deleteTask(Long id) {
@@ -76,8 +90,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> getTasksByUserId(Long userId) {
-        // Assuming you have this method in TaskRepository
-        return taskRepository.findByUserId(userId);
+    public List<TaskDTO> getTasksByUserId(Long userId) {
+        return convertToDTO(taskRepository.findByUserId(userId));
     }
 }

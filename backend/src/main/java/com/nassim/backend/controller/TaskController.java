@@ -1,7 +1,6 @@
 package com.nassim.backend.controller;
 
 import com.nassim.backend.DTO.TaskDTO;
-import com.nassim.backend.model.Task;
 import com.nassim.backend.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tasks")
+@CrossOrigin(origins = "http://localhost:3000")
 public class TaskController {
 
     private final TaskService taskService;
@@ -27,23 +28,22 @@ public class TaskController {
         return ResponseEntity.ok(createdTask);
     }
 
-
     @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks() {
+    public ResponseEntity<List<TaskDTO>> getAllTasks() {
         return ResponseEntity.ok(taskService.getAllTasks());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return taskService.getTaskById(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<TaskDTO> getTaskById(@PathVariable Long id) {
+        Optional<TaskDTO> taskDTO = taskService.getTaskById(id);
+        return taskDTO.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody @Valid Task task) {
+    public ResponseEntity<TaskDTO> updateTask(@PathVariable Long id, @RequestBody @Valid TaskDTO taskDTO) {
         try {
-            Task updatedTask = taskService.updateTask(id, task);
+            TaskDTO updatedTask = taskService.updateTask(id, taskDTO);
             return ResponseEntity.ok(updatedTask);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -55,10 +55,9 @@ public class TaskController {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }
-
+    
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Task>> getTasksByUserId(@PathVariable Long userId) {
-        List<Task> tasks = taskService.getTasksByUserId(userId);
-        return ResponseEntity.ok(tasks);
+    public ResponseEntity<List<TaskDTO>> getTasksByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(taskService.getTasksByUserId(userId));
     }
 }

@@ -7,9 +7,10 @@ import java.util.Optional;
 
 public interface TaskService {
     TaskDTO createTask(TaskDTO taskDTO);
-    List<Task> getAllTasks();
-    Optional<Task> getTaskById(Long id);
-    Task updateTask(Long id, Task updatedTask);
+    List<TaskDTO> getAllTasks();
+    Optional<TaskDTO> getTaskById(Long id);
+    TaskDTO updateTask(Long id, TaskDTO taskDTO);
+
     void deleteTask(Long id);
-    List<Task> getTasksByUserId(Long userId);
+    List<TaskDTO> getTasksByUserId(Long userId);
 }
