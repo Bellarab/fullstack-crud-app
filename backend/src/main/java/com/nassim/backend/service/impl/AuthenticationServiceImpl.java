@@ -46,6 +46,7 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
 
         User user = new User();
         user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user = repository.save(user);
 

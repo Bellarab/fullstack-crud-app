@@ -1,0 +1,4 @@
+-- V3__remove_role_from_user.sql
+
+ALTER TABLE user
+    DROP COLUMN role;
