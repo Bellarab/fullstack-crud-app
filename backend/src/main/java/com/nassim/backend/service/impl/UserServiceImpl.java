@@ -38,12 +38,13 @@ public class UserServiceImpl implements UserService {
     public User updateUser(Long id, User updatedUser) {
         return userRepository.findById(id)
                 .map(existingUser -> {
-                    existingUser.setName(updatedUser.getName());
-                    existingUser.setEmail(updatedUser.getEmail());
+                    existingUser.setUsername(updatedUser.getUsername()); // ✅ changed from setName
+                    existingUser.setEmail(updatedUser.getEmail());       // ❌ Also note: You removed "email" from your entity earlier
                     return userRepository.save(existingUser);
                 })
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
+
 
     @Override
     public void deleteUser(Long id) {
