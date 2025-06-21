@@ -29,6 +29,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokens;
+
     // Constructors
     public User() {}
 
@@ -41,17 +44,16 @@ public class User implements UserDetails {
     }
 
     // Getters and setters
-    public Long getId() { return id; }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+    public Long getId() {
+        return id;
     }
 
-    @Override
-    public String getPassword() {
-        return null;
+    public void setId(Long id) {
+        this.id = id;
     }
+
+
+
 
     public String getUsername() {
         return username;
@@ -59,34 +61,49 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return true;
     }
 
     public void setUsername(String username) {
         this.username = username;
     }
 
-    public String getEmail() { return email; }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
 
-    public void setEmail(String email) { this.email = email; }
+    public String getPassword() {
+        return password;
+    }
 
-    public List<Task> getTasks() { return tasks; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public void setTasks(List<Task> tasks) { this.tasks = tasks; }
+
+
+    public List<Token> getTokens() {
+        return tokens;
+    }
+
+    public void setTokens(List<Token> tokens) {
+        this.tokens = tokens;
+    }
 }
 
