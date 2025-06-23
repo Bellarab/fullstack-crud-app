@@ -10,4 +10,8 @@ public interface UserService {
     Optional<User> getUserById(Long id);
 
     void deleteUser(Long id);
+
+    public boolean existsByUsername(String username);
+    public boolean existsByEmail(String email);
+
 }

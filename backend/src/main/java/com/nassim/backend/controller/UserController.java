@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -47,6 +48,27 @@ public class UserController {
 //            return ResponseEntity.notFound().build();
 //        }
 //    }
+@GetMapping("/exists")
+public ResponseEntity<?> checkUsernameOrEmail(
+        @RequestParam(required = false) String username,
+        @RequestParam(required = false) String email) {
+
+    boolean usernameExists = false;
+    boolean emailExists = false;
+
+    if (username != null) {
+        usernameExists = userService.existsByUsername(username);
+    }
+
+    if (email != null) {
+        emailExists = userService.existsByEmail(email);
+    }
+
+    return ResponseEntity.ok().body(Map.of(
+            "usernameExists", usernameExists,
+            "emailExists", emailExists
+    ));
+}
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
