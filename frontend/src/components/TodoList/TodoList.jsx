@@ -1,26 +1,29 @@
 import { useEffect, useState } from "react";
-import axios from "../Apis/axios";
 import { useParams } from "react-router-dom";
-
+import { Link } from "react-router-dom";
+import UseAuth from "../Hooks/UseAuth";
+import UseAxiosPrivate from "../Hooks/UseAxiosPrivate";
 export default function TodoList() {
   const [tasks, setTasks] = useState([]);
   const { userId } = useParams();
-
+  const { auth } = UseAuth();
+  const axiosPrivate = UseAxiosPrivate();
   useEffect(() => {
     const fetchTasks = async () => {
+      console.log("Auth token in TodoList before fetch:", auth?.access_token);
       try {
-        const res = await axios.get("/api/tasks");
+        const res = await axiosPrivate.get(`/api/tasks/user/${auth?.userId}`);
         setTasks(res.data);
       } catch (err) {
         console.error("Failed to fetch tasks:", err);
       }
     };
     fetchTasks();
-  }, []);
+  }, [axiosPrivate, auth]);
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/tasks/${id}`);
+      await axiosPrivate.delete(`/api/tasks/${id}`);
       alert("Task deleted");
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
     } catch (error) {
@@ -56,14 +59,14 @@ export default function TodoList() {
                   Delete
                 </button>
 
-                <a href="/add" className="text-decoration-none">
+                <Link to="/add" className="text-decoration-none">
                   <button
                     type="button"
                     className="btn btn-success btn-sm btn-md rounded-pill shadow-sm"
                   >
                     Add
                   </button>
-                </a>
+                </Link>
 
                 <button
                   type="button"
@@ -91,7 +94,10 @@ export default function TodoList() {
                         </p>
                       </div>
                       <div className="d-flex align-items-center gap-2 flex-shrink-0">
-                        <a href={`/edit/${task.id}`}>
+                        <Link
+                          to={`/edit/${task.id}`}
+                          className="text-decoration-none"
+                        >
                           <button
                             type="button"
                             className="btn btn-link btn-sm text-info p-2"
@@ -99,7 +105,8 @@ export default function TodoList() {
                           >
                             <i className="bi bi-pencil fs-5"></i>
                           </button>
-                        </a>
+                        </Link>
+
                         <button
                           type="button"
                           className="btn btn-link btn-sm text-danger p-2"
