@@ -45,7 +45,7 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
     @Override
     public AuthenticationResponse register(User request) {
         if (repository.findByUsername(request.getUsername()).isPresent()) {
-            return new AuthenticationResponse(null, null, "User already exist",null);
+            return new AuthenticationResponse(null, null, "User already exist",null,null);
         }
 
         User user = new User();
@@ -59,7 +59,7 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
 
         saveUserToken(accessToken, refreshToken, user);
 
-        return new AuthenticationResponse(accessToken, refreshToken, "User registration was successful",user.getUsername());
+        return new AuthenticationResponse(accessToken, refreshToken, "User registration was successful",user.getUsername(),user.getId());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
         response.addCookie(cookie);
 
         // Return response without refresh token in the body
-        return new AuthenticationResponse(accessToken, refreshToken, "User login was successful", user.getUsername());
+        return new AuthenticationResponse(accessToken, refreshToken, "User login was successful", user.getUsername(),user.getId());
     }
 
 
@@ -161,7 +161,7 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
             response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
             // Return access token + role in the body (optional)
-            return ResponseEntity.ok(new AuthenticationResponse(newAccessToken, newRefreshToken, "success",username));
+            return ResponseEntity.ok(new AuthenticationResponse(newAccessToken, newRefreshToken, "success",username,user.getId()));
         }
 
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

@@ -15,11 +15,15 @@ public class AuthenticationResponse {
     @JsonProperty("username")
     private String username;
 
-    public AuthenticationResponse(String accessToken, String refreshToken, String message,String username) {
+    @JsonProperty("userId")
+    private long userId;
+
+    public AuthenticationResponse(String accessToken, String refreshToken, String message,String username,Long userId) {
         this.accessToken = accessToken;
         this.message = message;
         this.refreshToken = refreshToken;
         this.username=username;
+        this.userId=userId;
     }
 
     public String getAccessToken() {
