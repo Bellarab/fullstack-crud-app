@@ -17,12 +17,21 @@ public class CustomLogoutHandler implements LogoutHandler {
         this.tokenRepository = tokenRepository;
     }
 
+    private static final String AUTH_COOKIE_NAME = "refreshToken";
+    private void expireCookie(HttpServletResponse response, String cookieName) {
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie(cookieName, null);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);  // Important for security
+        cookie.setSecure(false);    // Enable in production (HTTPS only)
+        cookie.setMaxAge(0);       // Immediately expire the cookie
+        response.addCookie(cookie);
+    }
     @Override
     public void logout(HttpServletRequest request,
                        HttpServletResponse response,
                        Authentication authentication) {
         String authHeader = request.getHeader("Authorization");
-
+        final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
         if(authHeader == null || !authHeader.startsWith("Bearer ")) {
             return;
         }
@@ -33,6 +42,8 @@ public class CustomLogoutHandler implements LogoutHandler {
         if(storedToken != null) {
             storedToken.setLoggedOut(true);
             tokenRepository.save(storedToken);
+            expireCookie(response, REFRESH_TOKEN_COOKIE_NAME);
         }
+
     }
 }
