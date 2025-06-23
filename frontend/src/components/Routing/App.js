@@ -8,6 +8,7 @@ import TodoApp from "../TodoList/TodoList";
 import PersistLogin from "../Authentication/persistLogin";
 import Layout from "./Layout";
 import Missing from "../Errors/Missing";
+import RequireAuth from "./RequireAuth";
 function App() {
   return (
     <div className="App">
@@ -18,11 +19,16 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
 
-          <Route index element={<TodoApp />} />
-          <Route path="/add" element={<AddTask />} />
-          <Route path="/edit/:id" element={<EditTask />} />
-          {/* Catch-all */}
-          <Route path="*" element={<Missing />} />
+          {/* Wrap PersistLogin around ALL ROUTES that might need token refresh */}
+          <Route element={<PersistLogin />}>
+            <Route element={<RequireAuth />}>
+              <Route index element={<TodoApp />} />
+              <Route path="/add" element={<AddTask />} />
+              <Route path="/edit/:id" element={<EditTask />} />
+              {/* Catch-all */}
+              <Route path="*" element={<Missing />} />
+            </Route>
+          </Route>
         </Route>
       </Routes>
     </div>
