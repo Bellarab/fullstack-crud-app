@@ -10,7 +10,7 @@ public interface AuthenticationServiceInterface {
 
     AuthenticationResponse register(User request);
 
-    AuthenticationResponse authenticate(User request);
+    AuthenticationResponse authenticate(User request,HttpServletResponse response);
 
     ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response);
 }

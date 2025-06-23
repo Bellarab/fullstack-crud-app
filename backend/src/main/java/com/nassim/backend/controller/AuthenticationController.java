@@ -31,10 +31,13 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(
-            @RequestBody User request
+            @RequestBody User request,
+            HttpServletResponse response
     ) {
-        return ResponseEntity.ok(authService.authenticate(request));
+        AuthenticationResponse authResponse = authService.authenticate(request, response);
+        return ResponseEntity.ok(authResponse);
     }
+
 
     @PostMapping("/refresh_token")
     public ResponseEntity refreshToken(
