@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from "react";
-import axios from "../Apis/axios";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
+import UseAxiosPrivate from "../Hooks/UseAxiosPrivate";
+import useAuth from "../Hooks/UseAuth";
 const TaskForm = ({ mode }) => {
+  const { Auth } = useAuth();
+  const axiosPrivate = UseAxiosPrivate();
   const [task, setTask] = useState({
     title: "",
     description: "",
-    userId: "",
+    userId: Auth?.userId,
   });
 
   const [error, setError] = useState("");
@@ -15,7 +17,7 @@ const TaskForm = ({ mode }) => {
 
   useEffect(() => {
     if (mode === "edit" && id) {
-      axios
+      axiosPrivate
         .get(`http://localhost:8080/api/tasks/${id}`)
         .then((res) => setTask(res.data))
         .catch((err) => {
@@ -33,9 +35,9 @@ const TaskForm = ({ mode }) => {
     e.preventDefault();
     try {
       if (mode === "edit") {
-        await axios.put(`/api/tasks/${id}`, task);
+        await axiosPrivate.put(`/api/tasks/${id}`, task);
       } else {
-        await axios.post("/api/tasks", task);
+        await axiosPrivate.post("/api/tasks", task);
       }
       navigate("/");
     } catch (err) {
@@ -75,19 +77,6 @@ const TaskForm = ({ mode }) => {
             className="form-control"
             rows="3"
             placeholder="Enter description"
-          />
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">User ID</label>
-          <input
-            type="number"
-            name="userId"
-            value={task.userId}
-            onChange={handleChange}
-            className="form-control"
-            required
-            placeholder="Enter user ID"
           />
         </div>
 
