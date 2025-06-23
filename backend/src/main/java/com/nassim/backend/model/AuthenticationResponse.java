@@ -12,10 +12,14 @@ public class AuthenticationResponse {
     @JsonProperty("message")
     private String message;
 
-    public AuthenticationResponse(String accessToken, String refreshToken, String message) {
+    @JsonProperty("username")
+    private String username;
+
+    public AuthenticationResponse(String accessToken, String refreshToken, String message,String username) {
         this.accessToken = accessToken;
         this.message = message;
         this.refreshToken = refreshToken;
+        this.username=username;
     }
 
     public String getAccessToken() {
