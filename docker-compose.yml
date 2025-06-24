@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysqlcontainer
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 0000
+      MYSQL_DATABASE: todolist_db
+    networks:
+      - networksql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backendcontainer
+    ports:
+      - "8080:8080"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DB_NAME: todolist_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 0000
+    networks:
+      - networksql
+    depends_on:
+      - mysql
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80"
+    networks:
+      - networksql
+    depends_on:
+      - backend
+
+networks:
+  networksql:
