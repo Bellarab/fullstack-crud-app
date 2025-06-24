@@ -83,7 +83,14 @@ function Login(props) {
     console.log(" Received Google Token:", googleToken);
 
     try {
-      const res = await axios.post("/oauth-login", { token: googleToken });
+      const res = await axios.post(
+        "/oauth-login",
+        { token: googleToken },
+        {
+          withCredentials: true,
+        }
+      );
+
       console.log(" Response from backend:", res);
 
       const { access_token, userId, username } = res.data;
@@ -203,7 +210,7 @@ function Login(props) {
                   </button>
 
                   {/* Google Login Button Wrapper */}
-                  <div className="w-100 mb-3">
+                  <div className="w-100 mb-3" onClick={togglePersist}>
                     <GoogleLogin
                       onSuccess={handleLoginSuccess}
                       onError={() => console.log("Login Failed")}

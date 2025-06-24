@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -254,12 +255,16 @@ public Map<String, Object> loginWithGoogle(String googleToken, HttpServletRespon
         revokeAllTokenByUser(user);
         saveUserToken(accessToken, refreshToken, user);
 
-        Cookie cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false); // Set to true in production with HTTPS
-        cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
-        response.addCookie(cookie);
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false) // Set to true in production (only over HTTPS)
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 7 days
+                .build();
+
+        // Add Set-Cookie header
+        response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         return Map.of(
                 "access_token", accessToken,
