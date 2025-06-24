@@ -93,7 +93,7 @@ function Register() {
 
   useEffect(() => {
     if (success) {
-      navigate("/main");
+      navigate("/");
     }
   }, [success, navigate]);
 

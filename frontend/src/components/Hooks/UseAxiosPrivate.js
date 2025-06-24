@@ -13,7 +13,7 @@ const UseAxiosPrivate = () => {
     // Add a request interceptor to attach the Authorization header before each request
     //The request interceptor runs before the request is sent, to add the access token.
     //console.log("axiosPRV token " + auth?.access_token);
-
+    console.log("token in axios prv :" + auth.access_token);
     const requestIntercept = axiosPrivate.interceptors.request.use(
       (config) => {
         // If there's no Authorization header, add one using the access token

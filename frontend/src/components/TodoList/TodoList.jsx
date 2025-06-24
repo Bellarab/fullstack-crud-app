@@ -31,6 +31,12 @@ export default function TodoList() {
       alert("Failed to delete task. Try again later.");
     }
   };
+  const handleSortAscending = () => {
+    const sortedTasks = [...tasks].sort((a, b) =>
+      a.title.localeCompare(b.title)
+    );
+    setTasks(sortedTasks);
+  };
 
   return (
     <div className="container my-5">
@@ -51,20 +57,12 @@ export default function TodoList() {
               <hr className="my-3" />
 
               <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-3">
-                <button
-                  type="button"
-                  className="btn btn-danger btn-sm btn-md rounded-pill shadow-sm"
-                  onClick={() => handleDelete(userId)}
-                >
-                  Delete
-                </button>
-
                 <Link to="/add" className="text-decoration-none">
                   <button
                     type="button"
-                    className="btn btn-success btn-sm btn-md rounded-pill shadow-sm"
+                    className="btn btn-success btn-sm btn-md rounded-pill shadow-sm px-5"
                   >
-                    Add
+                    <span className="text-bold">Add</span>
                   </button>
                 </Link>
 
@@ -73,6 +71,7 @@ export default function TodoList() {
                   className="btn btn-link p-2"
                   title="Sort Ascending"
                   style={{ color: "#23af89", fontSize: "1.25rem" }}
+                  onClick={handleSortAscending}
                 >
                   <i className="bi bi-sort-alpha-down"></i>
                 </button>

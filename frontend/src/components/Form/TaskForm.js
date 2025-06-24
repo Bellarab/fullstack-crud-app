@@ -3,12 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import UseAxiosPrivate from "../Hooks/UseAxiosPrivate";
 import useAuth from "../Hooks/UseAuth";
 const TaskForm = ({ mode }) => {
-  const { Auth } = useAuth();
+  const { auth } = useAuth();
   const axiosPrivate = UseAxiosPrivate();
   const [task, setTask] = useState({
     title: "",
     description: "",
-    userId: Auth?.userId,
+    userId: auth?.userId,
   });
 
   const [error, setError] = useState("");
@@ -33,6 +33,7 @@ const TaskForm = ({ mode }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       if (mode === "edit") {
         await axiosPrivate.put(`/api/tasks/${id}`, task);
