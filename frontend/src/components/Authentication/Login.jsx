@@ -215,7 +215,7 @@ function Login(props) {
                     Don't have an account yet?{" "}
                     <a
                       href="/register"
-                      className="text-warning text-decoration-none fw-semibold"
+                      className="text-primary text-decoration-none fs-6"
                     >
                       Sign up
                     </a>
