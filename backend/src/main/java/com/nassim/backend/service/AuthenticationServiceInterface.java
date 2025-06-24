@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
+
 public interface AuthenticationServiceInterface {
 
     AuthenticationResponse register(User request);
@@ -13,4 +15,6 @@ public interface AuthenticationServiceInterface {
     AuthenticationResponse authenticate(User request,HttpServletResponse response);
 
     ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response);
+
+    Map<String, Object> loginWithGoogle(String googleToken,HttpServletResponse response);
 }

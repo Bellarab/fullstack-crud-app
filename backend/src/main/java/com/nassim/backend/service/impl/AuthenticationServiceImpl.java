@@ -1,5 +1,9 @@
 package com.nassim.backend.service.impl;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nassim.backend.model.AuthenticationResponse;
 import com.nassim.backend.model.Token;
 import com.nassim.backend.model.User;
@@ -20,7 +24,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationServiceInterface {
@@ -166,4 +172,104 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
 
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
+
+//    @Override
+//    public Map<String, Object> loginWithGoogle(String googleToken, HttpServletResponse response) {
+//        try {
+//            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
+//                    .Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+//                    .setAudience(Collections.singletonList("1005769310011-m3ajvq5o02s8l5gn51ungu72bvhbv9ej.apps.googleusercontent.com"))
+//                    .build();
+//
+//            GoogleIdToken idToken = verifier.verify(googleToken);
+//
+//            if (idToken == null) {
+//                throw new RuntimeException("Invalid Google token");
+//            }
+//
+//            GoogleIdToken.Payload payload = idToken.getPayload();
+//            String email = payload.getEmail();
+//            String name = (String) payload.get("name");
+//
+//            User user = repository.findByEmail(email)
+//                    .orElseGet(() -> {
+//                        User newUser = new User();
+//                        newUser.setEmail(email);
+//                        newUser.setUsername(name);
+//                        return repository.save(newUser);
+//                    });
+//
+//            String accessToken = jwtService.generateAccessToken(user);
+//            String refreshToken = jwtService.generateRefreshToken(user);
+//
+//            revokeAllTokenByUser(user);
+//            saveUserToken(accessToken, refreshToken, user);
+//
+//            // Create HTTP-only, secure cookie with refresh token
+//            Cookie cookie = new Cookie("refreshToken", refreshToken);
+//            cookie.setHttpOnly(true);
+//            cookie.setSecure(false); // change to true in production with HTTPS
+//            cookie.setPath("/");
+//            cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+//            response.addCookie(cookie);
+//
+//            return Map.of(
+//                    "access_token", accessToken,
+//                    "refresh_token", refreshToken,
+//                    "userId", user.getId(),
+//                    "username", user.getUsername()
+//            );
+//        } catch (Exception e) {
+//            throw new RuntimeException("Login failed", e);
+//        }
+//    }
+public Map<String, Object> loginWithGoogle(String googleToken, HttpServletResponse response) {
+    try {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                new NetHttpTransport(),
+                JacksonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList("1005769310011-m3ajvq5o02s8l5gn51ungu72bvhbv9ej.apps.googleusercontent.com"))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(googleToken);
+
+        if (idToken == null) {
+            throw new RuntimeException("Invalid Google token");
+        }
+
+        String email = idToken.getPayload().getEmail();
+        String name = (String) idToken.getPayload().get("name");
+
+        User user = repository.findByEmail(email)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setEmail(email);
+                    newUser.setUsername(name);
+                    return repository.save(newUser);
+                });
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        revokeAllTokenByUser(user);
+        saveUserToken(accessToken, refreshToken, user);
+
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // Set to true in production with HTTPS
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+        response.addCookie(cookie);
+
+        return Map.of(
+                "access_token", accessToken,
+                "refresh_token", refreshToken,
+                "userId", user.getId(),
+                "username", user.getUsername()
+        );
+    } catch (Exception e) {
+        throw new RuntimeException("Login failed", e);
+    }
+}
+
 }
