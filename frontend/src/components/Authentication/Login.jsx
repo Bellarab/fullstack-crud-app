@@ -1,8 +1,7 @@
 import { useRef, useState, useEffect } from "react";
-import { useNavigate, useLocation, redirect } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { MdAlternateEmail } from "react-icons/md";
 import { FaFingerprint, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
-// import axios from "../Apis/axios";
 import axios from "../Apis/axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -54,7 +53,7 @@ function Login(props) {
       const access_token = response?.data?.access_token;
       const userId = response?.data?.userId;
       setAuth({ username, pwd, access_token, userId });
-      console.log("username while loggin in : " + username);
+      console.log(response?.data);
       setUsername("");
       setPwd("");
       navigate(from, { replace: true });
@@ -210,7 +209,7 @@ function Login(props) {
                   </button>
 
                   {/* Google Login Button Wrapper */}
-                  <div className="w-100 mb-3" onClick={togglePersist}>
+                  <div className="w-100 mb-3">
                     <GoogleLogin
                       onSuccess={handleLoginSuccess}
                       onError={() => console.log("Login Failed")}

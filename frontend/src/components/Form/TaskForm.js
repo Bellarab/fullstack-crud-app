@@ -18,7 +18,7 @@ const TaskForm = ({ mode }) => {
   useEffect(() => {
     if (mode === "edit" && id) {
       axiosPrivate
-        .get(`http://localhost:8080/api/tasks/${id}`)
+        .get(`/api/tasks/${id}`)
         .then((res) => setTask(res.data))
         .catch((err) => {
           console.error(err);
