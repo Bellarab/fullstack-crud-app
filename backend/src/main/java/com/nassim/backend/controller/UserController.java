@@ -21,17 +21,30 @@ public class UserController {
         this.userService = userService;
     }
 
+    /**
+     * Create a new user.
+     * Expects a valid User object in the request body.
+     * Returns the created user.
+     */
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody @Valid User user) {
         User createdUser = userService.createUser(user);
         return ResponseEntity.ok(createdUser);
     }
 
+    /**
+     * Retrieve all users.
+     * Returns a list of all users.
+     */
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    /**
+     * Retrieve a user by ID.
+     * Returns the user if found, or 404 Not Found if not.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
@@ -39,37 +52,37 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-//    @PutMapping("/{id}")
-//    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody @Valid User user) {
-//        try {
-//            User updatedUser = userService.updateUser(id, user);
-//            return ResponseEntity.ok(updatedUser);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.notFound().build();
-//        }
-//    }
-@GetMapping("/exists")
-public ResponseEntity<?> checkUsernameOrEmail(
-        @RequestParam(required = false) String username,
-        @RequestParam(required = false) String email) {
+    /**
+     * Check if username or email already exists.
+     * Both query params are optional; can check either or both.
+     * Returns a JSON with keys "usernameExists" and "emailExists".
+     */
+    @GetMapping("/exists")
+    public ResponseEntity<?> checkUsernameOrEmail(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email) {
 
-    boolean usernameExists = false;
-    boolean emailExists = false;
+        boolean usernameExists = false;
+        boolean emailExists = false;
 
-    if (username != null) {
-        usernameExists = userService.existsByUsername(username);
+        if (username != null) {
+            usernameExists = userService.existsByUsername(username);
+        }
+
+        if (email != null) {
+            emailExists = userService.existsByEmail(email);
+        }
+
+        return ResponseEntity.ok().body(Map.of(
+                "usernameExists", usernameExists,
+                "emailExists", emailExists
+        ));
     }
 
-    if (email != null) {
-        emailExists = userService.existsByEmail(email);
-    }
-
-    return ResponseEntity.ok().body(Map.of(
-            "usernameExists", usernameExists,
-            "emailExists", emailExists
-    ));
-}
-
+    /**
+     * Delete a user by ID.
+     * Returns 204 No Content on successful deletion.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);

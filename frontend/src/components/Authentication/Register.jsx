@@ -19,46 +19,58 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "../Apis/axios";
 import { useNavigate } from "react-router-dom";
 
+// Regex patterns for validation
 const USER_REGEX = /^[A-z][A-z0-9-_]{2,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function Register() {
   const navigate = useNavigate();
+
+  // Refs for focusing inputs and error messages
   const userRef = useRef();
   const errRef = useRef();
 
+  // Username state and validation
   const [username, setUsername] = useState("");
   const [validUsername, setValidUsername] = useState(false);
   const [usernameFocus, setUsernameFocus] = useState(false);
 
+  // Email state and validation
   const [email, setEmail] = useState("");
   const [validEmail, setValidEmail] = useState(false);
   const [emailFocus, setEmailFocus] = useState(false);
 
+  // Password state and validation
   const [pwd, setPwd] = useState("");
   const [validPwd, setValidPwd] = useState(false);
   const [pwdFocus, setPwdFocus] = useState(false);
 
+  // Confirm password state and validation
   const [matchPwd, setMatchPwd] = useState("");
   const [validMatch, setValidMatch] = useState(false);
   const [matchFocus, setMatchFocus] = useState(false);
 
+  // Error and success messages
   const [errMsg, setErrMsg] = useState("");
   const [APIerrMsg, setAPIErrMsg] = useState("");
   const [success, setSuccess] = useState(false);
 
+  // Check if username or email already exists
   const [usernameExists, setUsernameExists] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
 
+  // Focus username input on mount
   useEffect(() => {
     userRef.current.focus();
   }, []);
 
+  // Validate username on change
   useEffect(() => {
     setValidUsername(USER_REGEX.test(username));
   }, [username]);
 
+  // Validate email and set specific error messages
   useEffect(() => {
     if (email === "") {
       setValidEmail(false);
@@ -82,27 +94,33 @@ function Register() {
     }
   }, [email]);
 
+  // Validate password and confirm password match
   useEffect(() => {
     setValidPwd(PWD_REGEX.test(pwd));
     setValidMatch(pwd === matchPwd);
   }, [pwd, matchPwd]);
 
+  // Clear error message when relevant inputs change
   useEffect(() => {
     setErrMsg("");
   }, [username, pwd, matchPwd]);
 
+  // Navigate to login on successful registration
   useEffect(() => {
     if (success) {
       navigate("/");
     }
   }, [success, navigate]);
 
+  // State for toggling password visibility
   const [showPassword, setShowPassword] = useState(true);
   const togglePasswordView = () => setShowPassword((prev) => !prev);
 
+  // Form submission handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Prevent submission if inputs invalid or username/email taken
     if (
       !validUsername ||
       !validEmail ||
@@ -123,6 +141,7 @@ function Register() {
         role: "USER",
       };
 
+      // Send registration request
       const response = await axios.post("/register", userData, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
@@ -131,6 +150,7 @@ function Register() {
       console.log(response?.data);
       setSuccess(true);
 
+      // Reset form fields
       setUsername("");
       setEmail("");
       setPwd("");
@@ -147,6 +167,7 @@ function Register() {
     }
   };
 
+  // Show API error messages as toast notifications
   useEffect(() => {
     if (APIerrMsg) {
       toast.error(APIerrMsg);
@@ -154,6 +175,7 @@ function Register() {
     }
   }, [APIerrMsg]);
 
+  // Check availability of username and email by querying backend
   const checkUsernameAndEmail = async (username, email) => {
     try {
       const response = await axios.get("/api/users/exists", {
@@ -170,6 +192,7 @@ function Register() {
     }
   };
 
+  // Debounced username availability check
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (validUsername) {
@@ -184,6 +207,7 @@ function Register() {
     return () => clearTimeout(delayDebounce);
   }, [username, validUsername]);
 
+  // Debounced email availability check
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (validEmail) {
@@ -208,6 +232,7 @@ function Register() {
           <div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
             <div className="card shadow p-3 p-md-4 my-4 rounded-4">
               <div className="card-body">
+                {/* Header */}
                 <h2
                   className="card-title text-center mb-2 fw-semibold"
                   style={{
@@ -230,8 +255,9 @@ function Register() {
                   Stay organized, stay productive.
                 </p>
 
+                {/* Registration form */}
                 <form onSubmit={handleSubmit} noValidate>
-                  {/* Username */}
+                  {/* Username Input */}
                   <div className="mb-3 position-relative">
                     <div className="input-group">
                       <span className="input-group-text fs-5">
@@ -251,6 +277,7 @@ function Register() {
                         onFocus={() => setUsernameFocus(true)}
                         onBlur={() => setUsernameFocus(false)}
                       />
+                      {/* Validation Icons */}
                       {validUsername && !usernameExists && (
                         <span className="input-group-text text-success">
                           <FontAwesomeIcon icon={faCheck} />
@@ -262,6 +289,8 @@ function Register() {
                         </span>
                       )}
                     </div>
+
+                    {/* Username error/info messages */}
                     {usernameExists && (
                       <div className="form-text text-danger d-flex align-items-center mt-1 small">
                         <FontAwesomeIcon icon={faInfoCircle} className="me-1" />
@@ -280,7 +309,7 @@ function Register() {
                     )}
                   </div>
 
-                  {/* Email */}
+                  {/* Email Input */}
                   <div className="mb-3 position-relative">
                     <div className="input-group">
                       <span className="input-group-text fs-5">
@@ -299,6 +328,7 @@ function Register() {
                         autoComplete="off"
                         placeholder="Enter your email"
                       />
+                      {/* Validation Icons */}
                       {validEmail && !emailExists && (
                         <span className="input-group-text text-success">
                           <FontAwesomeIcon icon={faCheck} />
@@ -310,6 +340,8 @@ function Register() {
                         </span>
                       )}
                     </div>
+
+                    {/* Email error/info messages */}
                     {email && emailExists && (
                       <div className="form-text text-danger d-flex align-items-center mt-1 small">
                         <FontAwesomeIcon icon={faInfoCircle} className="me-1" />
@@ -327,7 +359,7 @@ function Register() {
                     )}
                   </div>
 
-                  {/* Password */}
+                  {/* Password Input */}
                   <div className="mb-3 position-relative">
                     <div className="input-group">
                       <span className="input-group-text fs-5">
@@ -345,6 +377,7 @@ function Register() {
                         onBlur={() => setPwdFocus(false)}
                         placeholder="Type password"
                       />
+                      {/* Validation Icons */}
                       {validPwd && (
                         <span className="input-group-text text-success">
                           <FontAwesomeIcon icon={faCheck} />
@@ -355,6 +388,7 @@ function Register() {
                           <FontAwesomeIcon icon={faTimes} />
                         </span>
                       )}
+                      {/* Toggle password visibility */}
                       <span
                         className="input-group-text cursor-pointer fs-5"
                         onClick={togglePasswordView}
@@ -364,6 +398,8 @@ function Register() {
                         {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
                       </span>
                     </div>
+
+                    {/* Password requirements */}
                     {pwdFocus && !validPwd && (
                       <div
                         id="passwordHelp"
@@ -379,7 +415,7 @@ function Register() {
                     )}
                   </div>
 
-                  {/* Confirm Password */}
+                  {/* Confirm Password Input */}
                   <div className="mb-3 position-relative">
                     <div className="input-group">
                       <span className="input-group-text fs-5">
@@ -397,6 +433,7 @@ function Register() {
                         onBlur={() => setMatchFocus(false)}
                         placeholder="Confirm password"
                       />
+                      {/* Validation Icons */}
                       {validMatch && matchPwd && (
                         <span className="input-group-text text-success">
                           <FontAwesomeIcon icon={faCheck} />
@@ -407,6 +444,7 @@ function Register() {
                           <FontAwesomeIcon icon={faTimes} />
                         </span>
                       )}
+                      {/* Toggle password visibility */}
                       <span
                         className="input-group-text cursor-pointer fs-5"
                         onClick={togglePasswordView}
@@ -416,6 +454,8 @@ function Register() {
                         {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
                       </span>
                     </div>
+
+                    {/* Confirm password match message */}
                     {matchFocus && !validMatch && (
                       <div
                         id="confirmHelp"
@@ -427,7 +467,7 @@ function Register() {
                     )}
                   </div>
 
-                  {/* Submit Button */}
+                  {/* Submit button */}
                   <button
                     type="submit"
                     disabled={
@@ -438,6 +478,7 @@ function Register() {
                     Sign up
                   </button>
 
+                  {/* Link to login page */}
                   <p className="text-center text-muted small mt-3">
                     Have an account?{" "}
                     <a

@@ -35,7 +35,7 @@ git clone <your-repo-url>
 cd fullstack-crud-app
 
 
-2. **Build and start all containers :docker-compose up --build
+2. **Build and start all containers : docker-compose up --build
 
     This will build and start the following services:
     MySQL database accessible on localhost:3307

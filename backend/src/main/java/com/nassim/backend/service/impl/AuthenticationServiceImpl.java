@@ -14,7 +14,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import jdk.jfr.StackTrace;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -24,7 +23,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +50,7 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
     @Override
     public AuthenticationResponse register(User request) {
         if (repository.findByUsername(request.getUsername()).isPresent()) {
-            return new AuthenticationResponse(null, null, "User already exist",null,null);
+            return new AuthenticationResponse(null, null, "User already exist", null, null);
         }
 
         User user = new User();
@@ -66,7 +64,7 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
 
         saveUserToken(accessToken, refreshToken, user);
 
-        return new AuthenticationResponse(accessToken, refreshToken, "User registration was successful",user.getUsername(),user.getId());
+        return new AuthenticationResponse(accessToken, refreshToken, "User registration was successful", user.getUsername(), user.getId());
     }
 
     @Override
@@ -93,17 +91,15 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
         cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
         response.addCookie(cookie);
 
-        // Return response without refresh token in the body
-        return new AuthenticationResponse(accessToken, refreshToken, "User login was successful", user.getUsername(),user.getId());
+        // Return response including tokens and user info
+        return new AuthenticationResponse(accessToken, refreshToken, "User login was successful", user.getUsername(), user.getId());
     }
-
 
     private void revokeAllTokenByUser(User user) {
         List<Token> validTokens = tokenRepository.findAllAccessTokensByUser(user.getId());
         if (validTokens.isEmpty()) {
             return;
         }
-
         validTokens.forEach(t -> t.setLoggedOut(true));
         tokenRepository.saveAll(validTokens);
     }
@@ -122,12 +118,12 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
     public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String token = null;
 
-        // Get refreshToken from cookie
+        // Extract refreshToken from cookie
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("refreshToken".equals(cookie.getName())) {
                     token = cookie.getValue();
-                    System.out.println("Received refresh token: " + token); // Use proper logging in production
+                    System.out.println("Received refresh token: " + token); // For debugging; replace with proper logging in production
                     break;
                 }
             }
@@ -137,144 +133,81 @@ public class AuthenticationServiceImpl implements AuthenticationServiceInterface
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        // Extract email from token
         String username = jwtService.extractUsername(token);
 
-        // Get user from DB
         User user = repository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Validate the refresh token
         if (jwtService.isValidRefreshToken(token, user)) {
-            // Generate new tokens
             String newAccessToken = jwtService.generateAccessToken(user);
             String newRefreshToken = jwtService.generateRefreshToken(user);
 
-            // Revoke old tokens
             revokeAllTokenByUser(user);
-
-            // Save new tokens
             saveUserToken(newAccessToken, newRefreshToken, user);
 
-            // Create HTTP-only secure refresh cookie
             ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", newRefreshToken)
                     .httpOnly(true)
-                    .secure(false) // Set to true in production (only over HTTPS)
+                    .secure(false) // change to true in production
                     .path("/")
                     .maxAge(7 * 24 * 60 * 60) // 7 days
                     .build();
 
-            // Add Set-Cookie header
             response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-            // Return access token + role in the body (optional)
-            return ResponseEntity.ok(new AuthenticationResponse(newAccessToken, newRefreshToken, "success",username,user.getId()));
+            return ResponseEntity.ok(new AuthenticationResponse(newAccessToken, newRefreshToken, "success", username, user.getId()));
         }
 
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-//    @Override
-//    public Map<String, Object> loginWithGoogle(String googleToken, HttpServletResponse response) {
-//        try {
-//            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
-//                    .Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
-//                    .setAudience(Collections.singletonList("1005769310011-m3ajvq5o02s8l5gn51ungu72bvhbv9ej.apps.googleusercontent.com"))
-//                    .build();
-//
-//            GoogleIdToken idToken = verifier.verify(googleToken);
-//
-//            if (idToken == null) {
-//                throw new RuntimeException("Invalid Google token");
-//            }
-//
-//            GoogleIdToken.Payload payload = idToken.getPayload();
-//            String email = payload.getEmail();
-//            String name = (String) payload.get("name");
-//
-//            User user = repository.findByEmail(email)
-//                    .orElseGet(() -> {
-//                        User newUser = new User();
-//                        newUser.setEmail(email);
-//                        newUser.setUsername(name);
-//                        return repository.save(newUser);
-//                    });
-//
-//            String accessToken = jwtService.generateAccessToken(user);
-//            String refreshToken = jwtService.generateRefreshToken(user);
-//
-//            revokeAllTokenByUser(user);
-//            saveUserToken(accessToken, refreshToken, user);
-//
-//            // Create HTTP-only, secure cookie with refresh token
-//            Cookie cookie = new Cookie("refreshToken", refreshToken);
-//            cookie.setHttpOnly(true);
-//            cookie.setSecure(false); // change to true in production with HTTPS
-//            cookie.setPath("/");
-//            cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
-//            response.addCookie(cookie);
-//
-//            return Map.of(
-//                    "access_token", accessToken,
-//                    "refresh_token", refreshToken,
-//                    "userId", user.getId(),
-//                    "username", user.getUsername()
-//            );
-//        } catch (Exception e) {
-//            throw new RuntimeException("Login failed", e);
-//        }
-//    }
-public Map<String, Object> loginWithGoogle(String googleToken, HttpServletResponse response) {
-    try {
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                new NetHttpTransport(),
-                JacksonFactory.getDefaultInstance())
-                .setAudience(Collections.singletonList("1005769310011-m3ajvq5o02s8l5gn51ungu72bvhbv9ej.apps.googleusercontent.com"))
-                .build();
+    public Map<String, Object> loginWithGoogle(String googleToken, HttpServletResponse response) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(),
+                    JacksonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList("1005769310011-m3ajvq5o02s8l5gn51ungu72bvhbv9ej.apps.googleusercontent.com"))
+                    .build();
 
-        GoogleIdToken idToken = verifier.verify(googleToken);
+            GoogleIdToken idToken = verifier.verify(googleToken);
 
-        if (idToken == null) {
-            throw new RuntimeException("Invalid Google token");
+            if (idToken == null) {
+                throw new RuntimeException("Invalid Google token");
+            }
+
+            String email = idToken.getPayload().getEmail();
+            String name = (String) idToken.getPayload().get("name");
+
+            User user = repository.findByEmail(email)
+                    .orElseGet(() -> {
+                        User newUser = new User();
+                        newUser.setEmail(email);
+                        newUser.setUsername(name);
+                        return repository.save(newUser);
+                    });
+
+            String accessToken = jwtService.generateAccessToken(user);
+            String refreshToken = jwtService.generateRefreshToken(user);
+
+            revokeAllTokenByUser(user);
+            saveUserToken(accessToken, refreshToken, user);
+
+            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                    .httpOnly(true)
+                    .secure(false) // change to true in production
+                    .path("/")
+                    .maxAge(7 * 24 * 60 * 60)
+                    .build();
+
+            response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+            return Map.of(
+                    "access_token", accessToken,
+                    "refresh_token", refreshToken,
+                    "userId", user.getId(),
+                    "username", user.getUsername()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Login failed", e);
         }
-
-        String email = idToken.getPayload().getEmail();
-        String name = (String) idToken.getPayload().get("name");
-
-        User user = repository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setEmail(email);
-                    newUser.setUsername(name);
-                    return repository.save(newUser);
-                });
-
-        String accessToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
-
-        revokeAllTokenByUser(user);
-        saveUserToken(accessToken, refreshToken, user);
-
-
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(false) // Set to true in production (only over HTTPS)
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7 days
-                .build();
-
-        // Add Set-Cookie header
-        response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
-        return Map.of(
-                "access_token", accessToken,
-                "refresh_token", refreshToken,
-                "userId", user.getId(),
-                "username", user.getUsername()
-        );
-    } catch (Exception e) {
-        throw new RuntimeException("Login failed", e);
     }
-}
-
 }

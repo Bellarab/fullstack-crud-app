@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 
-
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -43,42 +42,59 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         return http
+                // Enable CORS support
                 .cors()
                 .and()
+                // Disable CSRF protection (usually disabled for stateless APIs)
                 .csrf(AbstractHttpConfigurer::disable)
+                // Define URL authorization rules
                 .authorizeHttpRequests(
-                        req->req.requestMatchers("/login/**","/register/**", "/refresh_token/**","/api/users/exists","/oauth-login")
+                        req->req.requestMatchers(
+                                // Public endpoints allowed without authentication
+                                "/login/**",
+                                "/register/**", 
+                                "/refresh_token/**",
+                                "/api/users/exists",
+                                "/oauth-login")
                                 .permitAll()
+                                // Any other request requires authentication
                                 .anyRequest()
                                 .authenticated()
-                ).userDetailsService(userDetailsServiceImp)
+                )
+                // Specify the custom user details service for authentication
+                .userDetailsService(userDetailsServiceImp)
+                // Use stateless session management - no HTTP session
                 .sessionManagement(session->session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Add JWT authentication filter before username/password filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // Exception handling configuration for access denied and unauthorized access
                 .exceptionHandling(
                         e->e.accessDeniedHandler(
                                         (request, response, accessDeniedException)->response.setStatus(403)
                                 )
                                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                // Configure logout settings
                 .logout(l->l
                         .logoutUrl("/logout")
                         .addLogoutHandler(logoutHandler)
+                        // Clear security context on logout success
                         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()
                         ))
-                //.oauth2ResourceServer(oauth2 -> oauth2.jwt())
                 .build();
 
     }
 
+    // Bean for password encoding using BCrypt hashing algorithm
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // Bean to expose AuthenticationManager from AuthenticationConfiguration
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-
 
 }

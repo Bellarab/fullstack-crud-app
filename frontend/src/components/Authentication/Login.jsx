@@ -7,17 +7,36 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useAuth from "../Hooks/UseAuth";
 import { GoogleLogin } from "@react-oauth/google";
+
 function Login(props) {
+  // Auth and persistence state from custom hook
   const { setAuth, setPersist, persist } = useAuth();
+
+  // Show or hide password state
   const [showPassword, setShowPassword] = useState(true);
+
+  // Refs and states for form fields
   const userRef = useRef();
   const [username, setUsername] = useState("");
   const [pwd, setPwd] = useState("");
   const [errMsg, setErrMsg] = useState("");
+
+  // Navigation and location to redirect after login
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
 
+  // Focus the username input on component mount
+  useEffect(() => {
+    userRef.current.focus();
+  }, []);
+
+  // Clear error message when username or password changes
+  useEffect(() => {
+    setErrMsg("");
+  }, [username, pwd]);
+
+  // Show toast notification if there's an error message
   useEffect(() => {
     if (errMsg) {
       toast.error(errMsg);
@@ -25,21 +44,16 @@ function Login(props) {
     }
   }, [errMsg]);
 
+  // Handle toggling the password visibility
   const togglePasswordView = () => {
     setShowPassword((prev) => !prev);
   };
 
-  useEffect(() => {
-    userRef.current.focus();
-  }, []);
-
-  useEffect(() => {
-    setErrMsg("");
-  }, [username, pwd]);
-
+  // Handle login form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(username, pwd);
+
     try {
       const response = await axios.post(
         "/login",
@@ -50,14 +64,23 @@ function Login(props) {
         }
       );
 
+      // Extract tokens and user data from response
       const access_token = response?.data?.access_token;
       const userId = response?.data?.userId;
+
+      // Set authentication state
       setAuth({ username, pwd, access_token, userId });
+
       console.log(response?.data);
+
+      // Reset form fields
       setUsername("");
       setPwd("");
+
+      // Redirect user to the page they came from or home
       navigate(from, { replace: true });
     } catch (err) {
+      // Error handling based on response status
       if (!err?.response) {
         setErrMsg("No Server Response");
       } else if (err.response?.status === 400) {
@@ -69,14 +92,18 @@ function Login(props) {
       }
     }
   };
+
+  // Toggle "Remember me" persistence state
   const togglePersist = () => {
     setPersist((prev) => !prev);
   };
 
+  // Persist "Remember me" setting in localStorage
   useEffect(() => {
     localStorage.setItem("persist", persist);
   }, [persist]);
 
+  // Handle Google OAuth login success
   const handleLoginSuccess = async (credentialResponse) => {
     const googleToken = credentialResponse.credential;
     console.log(" Received Google Token:", googleToken);
@@ -90,16 +117,19 @@ function Login(props) {
         }
       );
 
-      console.log(" Response from backend:", res);
-
+      // Extract auth info from backend response
       const { access_token, userId, username } = res.data;
+
+      console.log(" Response from backend:", res);
       console.log(" Parsed JWT:", access_token);
       console.log(" User ID from backend:", userId);
       console.log(" Username from backend:", username);
 
+      // Update auth context state
       setAuth({ access_token, userId, username });
       console.log(" Auth state set!");
 
+      // Redirect after successful OAuth login
       navigate(from, { replace: true });
       console.log(" Navigated to:", from);
     } catch (err) {
@@ -112,6 +142,7 @@ function Login(props) {
       className="d-flex justify-content-center align-items-center "
       style={{ minHeight: "calc(100vh - 60px)" }}
     >
+      {/* Toast notifications container */}
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
 
       <section className="flex-grow-1 d-flex align-items-center justify-content-center">
@@ -119,6 +150,7 @@ function Login(props) {
           <div className="row justify-content-center">
             <div className="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
               <div className="border bg-white rounded shadow p-4 p-md-5 rounded-4">
+                {/* Header */}
                 <h2
                   className="card-title text-center mb-2 fw-semibold"
                   style={{
@@ -141,8 +173,9 @@ function Login(props) {
                   Manage tasks effortlessly, boost your productivity
                 </p>
 
+                {/* Login Form */}
                 <form onSubmit={handleSubmit}>
-                  {/* Username Field */}
+                  {/* Username Input */}
                   <div className="mb-4 input-group">
                     <span className="input-group-text fs-5">
                       <MdAlternateEmail />
@@ -159,7 +192,7 @@ function Login(props) {
                     />
                   </div>
 
-                  {/* Password Field */}
+                  {/* Password Input with toggle visibility */}
                   <div className="mb-4">
                     <div className="input-group position-relative w-100">
                       <span className="input-group-text fs-5">
@@ -184,7 +217,7 @@ function Login(props) {
                     </div>
                   </div>
 
-                  {/* Remember Me */}
+                  {/* Remember Me Checkbox */}
                   <div className="d-flex justify-content-between align-items-center mb-4">
                     <div className="form-check">
                       <input
@@ -200,7 +233,7 @@ function Login(props) {
                     </div>
                   </div>
 
-                  {/* Sign In Button */}
+                  {/* Submit Button */}
                   <button
                     type="submit"
                     className="btn btn-dark w-100 btn-lg mb-3"
@@ -208,7 +241,7 @@ function Login(props) {
                     Sign in
                   </button>
 
-                  {/* Google Login Button Wrapper */}
+                  {/* Google OAuth Login Button */}
                   <div className="w-100 mb-3">
                     <GoogleLogin
                       onSuccess={handleLoginSuccess}

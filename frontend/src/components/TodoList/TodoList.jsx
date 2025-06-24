@@ -3,11 +3,13 @@ import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import UseAuth from "../Hooks/UseAuth";
 import UseAxiosPrivate from "../Hooks/UseAxiosPrivate";
+
 export default function TodoList() {
   const [tasks, setTasks] = useState([]);
   const { userId } = useParams();
   const { auth } = UseAuth();
   const axiosPrivate = UseAxiosPrivate();
+
   useEffect(() => {
     const fetchTasks = async () => {
       console.log("Auth token in TodoList before fetch:", auth?.access_token);
@@ -31,6 +33,7 @@ export default function TodoList() {
       alert("Failed to delete task. Try again later.");
     }
   };
+
   const handleSortAscending = () => {
     const sortedTasks = [...tasks].sort((a, b) =>
       a.title.localeCompare(b.title)
