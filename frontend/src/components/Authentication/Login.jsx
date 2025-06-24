@@ -1,15 +1,15 @@
 import { useRef, useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, redirect } from "react-router-dom";
 import { MdAlternateEmail } from "react-icons/md";
 import { FaFingerprint, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+// import axios from "../Apis/axios";
 import axios from "../Apis/axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useAuth from "../Hooks/UseAuth";
-
+import { GoogleLogin } from "@react-oauth/google";
 function Login(props) {
   const { setAuth, setPersist, persist } = useAuth();
-
   const [showPassword, setShowPassword] = useState(true);
   const userRef = useRef();
   const [username, setUsername] = useState("");
@@ -77,6 +77,30 @@ function Login(props) {
   useEffect(() => {
     localStorage.setItem("persist", persist);
   }, [persist]);
+
+  const handleLoginSuccess = async (credentialResponse) => {
+    const googleToken = credentialResponse.credential;
+    console.log(" Received Google Token:", googleToken);
+
+    try {
+      const res = await axios.post("/oauth-login", { token: googleToken });
+      console.log(" Response from backend:", res);
+
+      const { access_token, userId, username } = res.data;
+      console.log(" Parsed JWT:", access_token);
+      console.log(" User ID from backend:", userId);
+      console.log(" Username from backend:", username);
+
+      setAuth({ access_token, userId, username });
+      console.log(" Auth state set!");
+
+      navigate(from, { replace: true });
+      console.log(" Navigated to:", from);
+    } catch (err) {
+      console.error(" Google login failed:", err.response?.data || err.message);
+    }
+  };
+
   return (
     <div
       className="d-flex justify-content-center align-items-center "
@@ -177,6 +201,14 @@ function Login(props) {
                   >
                     Sign in
                   </button>
+
+                  {/* Google Login Button Wrapper */}
+                  <div className="w-100 mb-3">
+                    <GoogleLogin
+                      onSuccess={handleLoginSuccess}
+                      onError={() => console.log("Login Failed")}
+                    />
+                  </div>
 
                   {/* Sign Up Link */}
                   <p className="text-center text-muted fs-6">
