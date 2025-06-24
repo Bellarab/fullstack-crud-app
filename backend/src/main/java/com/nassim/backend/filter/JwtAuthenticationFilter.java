@@ -35,20 +35,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request,response);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
             return;
         }
 
         String token = authHeader.substring(7);
+
+        // Check if token looks like a valid JWT (has exactly 2 dots)
+        if (token.split("\\.").length != 3) {
+            // Invalid JWT format - skip authentication to avoid error
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String username = jwtService.extractUsername(token);
 
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-
-            if(jwtService.isValid(token, userDetails)) {
+            if (jwtService.isValid(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()
                 );
@@ -60,8 +66,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+
         filterChain.doFilter(request, response);
-
-
     }
+
 }
