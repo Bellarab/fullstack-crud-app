@@ -1,7 +1,7 @@
 import axios from "axios";
 import UseAuth from "./UseAuth";
 import { useNavigate } from "react-router-dom";
-
+import { googleLogout } from "@react-oauth/google";
 function useLogout() {
   const { auth, setAuth } = UseAuth();
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ function useLogout() {
           withCredentials: true, // in case you're using cookies too
         }
       );
-
+      googleLogout();
       console.log("Logout response:", response);
 
       setAuth({}); // clear local auth context
