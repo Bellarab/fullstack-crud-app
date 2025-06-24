@@ -26,11 +26,14 @@ public class Task {
     // Constructors
     public Task() {}
 
-    public Task(String title, String description, User user) {
+    public Task(Long id,String title, String description, User user) {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.user = user;
     }
+
+
 
     // Getters and setters
     public Long getId() { return id; }
@@ -44,6 +47,10 @@ public class Task {
     public void setDescription(String description) { this.description = description; }
 
     public User getUser() { return user; }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public void setUser(User user) { this.user = user; }
 }
