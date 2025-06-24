@@ -4,6 +4,7 @@ import com.nassim.backend.filter.JwtAuthenticationFilter;
 import com.nassim.backend.service.impl.UserDetailsServiceImp;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,7 +47,7 @@ public class SecurityConfig {
                 .and()
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        req->req.requestMatchers("/login/**","/register/**", "/refresh_token/**","/api/users/exists")
+                        req->req.requestMatchers("/login/**","/register/**", "/refresh_token/**","/api/users/exists","/oauth-login")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()
@@ -64,6 +65,7 @@ public class SecurityConfig {
                         .addLogoutHandler(logoutHandler)
                         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()
                         ))
+                //.oauth2ResourceServer(oauth2 -> oauth2.jwt())
                 .build();
 
     }
